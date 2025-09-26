@@ -12,6 +12,7 @@ endif()
 project ("LearnSDL3")
 
 # Add source to this project's executable.
+add_subdirectory(vendor)
 add_subdirectory(src)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

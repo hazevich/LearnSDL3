@@ -2,11 +2,13 @@
 //
 
 #include "LearnSDL3.h"
+#include "SDL3/SDL.h"
 
 using namespace std;
 
 int main()
 {
-	cout << "Hello CMake." << endl;
+	SDL_Log("%s", "Hello world!");
+
 	return 0;
 }
