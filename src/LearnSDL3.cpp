@@ -9,14 +9,69 @@
 
 using namespace std;
 
+struct Vertex
+{
+    float x, y, z;
+    float r, g, b, a;
+};
+
+static Vertex _vertices[]
+{
+    { 0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f },
+    { -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f },
+    { 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f },
+};
+
 SDL_Window* _window;
 SDL_GPUDevice* _graphics;
+SDL_GPUBuffer* _vertexBuffer;
+SDL_GPUTransferBuffer* _transferBuffer;
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
 {
     _window = SDL_CreateWindow("LearnSDL3", 1920, 1080, SDL_WINDOW_RESIZABLE);
     _graphics = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, true, NULL);
     SDL_ClaimWindowForGPUDevice(_graphics, _window);
+
+    SDL_GPUBufferCreateInfo bufferInfo = {
+        .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
+        .size = sizeof(_vertices),
+    };
+
+    _vertexBuffer = SDL_CreateGPUBuffer(_graphics, &bufferInfo);
+
+    SDL_GPUTransferBufferCreateInfo transferInfo = {
+        .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+        .size = sizeof(_vertices),
+    };
+
+    _transferBuffer = SDL_CreateGPUTransferBuffer(_graphics, &transferInfo);
+
+    Vertex* transferData = (Vertex*) SDL_MapGPUTransferBuffer(_graphics, _transferBuffer, false);
+
+    // data[i] = vertices[i]
+    SDL_memcpy(transferData, _vertices, sizeof(_vertices));
+
+    SDL_UnmapGPUTransferBuffer(_graphics, _transferBuffer);
+
+    SDL_GPUCommandBuffer* commandBuffer = SDL_AcquireGPUCommandBuffer(_graphics);
+    SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(commandBuffer);
+
+    SDL_GPUTransferBufferLocation transferLocation = {
+        .transfer_buffer = _transferBuffer,
+        .offset = 0,
+    };
+
+    SDL_GPUBufferRegion region = {
+        .buffer = _vertexBuffer,
+        .offset = 0,
+        .size = sizeof(_vertices),
+    };
+
+    SDL_UploadToGPUBuffer(copyPass, &transferLocation, &region, true);
+
+    SDL_EndGPUCopyPass(copyPass);
+    SDL_SubmitGPUCommandBuffer(commandBuffer);
 
     return SDL_APP_CONTINUE;
 }
@@ -57,6 +112,9 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 
 void SDL_AppQuit(void* appstate, SDL_AppResult result)
 {
+    SDL_ReleaseGPUBuffer(_graphics, _vertexBuffer);
+    SDL_ReleaseGPUTransferBuffer(_graphics, _transferBuffer);
+
     SDL_DestroyWindow(_window);
     SDL_DestroyGPUDevice(_graphics);
 }
