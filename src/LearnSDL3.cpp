@@ -26,8 +26,7 @@ SDL_Window* _window;
 SDL_GPUDevice* _graphics;
 SDL_GPUBuffer* _vertexBuffer;
 SDL_GPUTransferBuffer* _transferBuffer;
-SDL_GPUShader* _vertexShader;
-SDL_GPUShader* _fragmentShader;
+SDL_GPUGraphicsPipeline* _graphicsPipeline;
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
 {
@@ -90,7 +89,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
         .num_uniform_buffers = 0,
     };
 
-    _vertexShader = SDL_CreateGPUShader(_graphics, &vertexShaderInfo);
+    SDL_GPUShader* vertexShader = SDL_CreateGPUShader(_graphics, &vertexShaderInfo);
 
     SDL_free(vertexCode);
 
@@ -102,16 +101,71 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
         .code = (Uint8*)fragmentCode,
         .entrypoint = "main",
         .format = SDL_GPU_SHADERFORMAT_SPIRV,
-        .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+        .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
         .num_samplers = 0,
         .num_storage_textures = 0,
         .num_storage_buffers = 0,
         .num_uniform_buffers = 0,
     };
 
-    _fragmentShader = SDL_CreateGPUShader(_graphics, &fragmentShaderInfo);
+    SDL_GPUShader* fragmentShader = SDL_CreateGPUShader(_graphics, &fragmentShaderInfo);
 
     SDL_free(fragmentCode);
+
+    SDL_GPUGraphicsPipelineCreateInfo pipelineInfo = {
+        .vertex_shader = vertexShader,
+        .fragment_shader = fragmentShader,
+        .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+    };
+
+    SDL_GPUVertexBufferDescription vertexBufferDescriptions[1];
+    vertexBufferDescriptions[0].input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX;
+    vertexBufferDescriptions[0].instance_step_rate = 0;
+    vertexBufferDescriptions[0].pitch = sizeof(Vertex);
+    vertexBufferDescriptions[0].slot = 0;
+
+    SDL_GPUVertexAttribute vertexAttributes[2];
+
+    vertexAttributes[0].buffer_slot = 0;
+    vertexAttributes[0].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3;
+    vertexAttributes[0].location = 0;
+    vertexAttributes[0].offset = 0;
+
+    vertexAttributes[1].buffer_slot = 0;
+    vertexAttributes[1].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
+    vertexAttributes[1].location = 1;
+    vertexAttributes[1].offset = sizeof(float) * 3;
+
+    pipelineInfo.vertex_input_state.num_vertex_attributes = 2;
+    pipelineInfo.vertex_input_state.vertex_attributes = vertexAttributes;
+
+    pipelineInfo.vertex_input_state.num_vertex_buffers = 1;
+    pipelineInfo.vertex_input_state.vertex_buffer_descriptions = vertexBufferDescriptions;
+
+    SDL_GPUColorTargetDescription colorTargetDescriptions[1];
+    colorTargetDescriptions[0] = {
+        .format = SDL_GetGPUSwapchainTextureFormat(_graphics, _window),
+        .blend_state = {
+            .src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+            .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
+            .color_blend_op = SDL_GPU_BLENDOP_ADD,
+
+            .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+            .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
+            .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+
+            .enable_blend = true,
+        },
+    };
+
+    pipelineInfo.target_info.num_color_targets = 1;
+    pipelineInfo.target_info.color_target_descriptions = colorTargetDescriptions;
+
+
+    _graphicsPipeline = SDL_CreateGPUGraphicsPipeline(_graphics, &pipelineInfo);
+
+    SDL_ReleaseGPUShader(_graphics, vertexShader);
+    SDL_ReleaseGPUShader(_graphics, fragmentShader);
 
     return SDL_APP_CONTINUE;
 }
@@ -154,9 +208,7 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result)
 {
     SDL_ReleaseGPUBuffer(_graphics, _vertexBuffer);
     SDL_ReleaseGPUTransferBuffer(_graphics, _transferBuffer);
-
-    SDL_ReleaseGPUShader(_graphics, _vertexShader);
-    SDL_ReleaseGPUShader(_graphics, _fragmentShader);
+    SDL_ReleaseGPUGraphicsPipeline(_graphics, _graphicsPipeline);
 
     SDL_DestroyWindow(_window);
     SDL_DestroyGPUDevice(_graphics);
