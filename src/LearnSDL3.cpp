@@ -18,8 +18,8 @@ struct Vertex
 static Vertex _vertices[]
 {
     { 0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f },
-    { -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f },
-    { 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f },
+    { -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f },
+    { 0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f },
 };
 
 SDL_Window* _window;
@@ -188,9 +188,20 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 
     SDL_GPURenderPass* renderPass = SDL_BeginGPURenderPass(commandBuffer, &colotTargetInfo, 1, NULL);
 
+    SDL_BindGPUGraphicsPipeline(renderPass, _graphicsPipeline);
+
+    SDL_GPUBufferBinding bufferBindings[1];
+    bufferBindings[0].buffer = _vertexBuffer;
+    bufferBindings[0].offset = 0;
+
+    SDL_BindGPUVertexBuffers(renderPass, 0, bufferBindings, 1);
+
+    SDL_DrawGPUPrimitives(renderPass, 3, 1, 0, 0);
 
     SDL_EndGPURenderPass(renderPass);
+
     SDL_SubmitGPUCommandBuffer(commandBuffer);
+
     return SDL_APP_CONTINUE;
 }
 
