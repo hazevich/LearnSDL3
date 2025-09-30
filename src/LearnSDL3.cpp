@@ -26,6 +26,7 @@ SDL_Window* _window;
 SDL_GPUDevice* _graphics;
 SDL_GPUBuffer* _vertexBuffer;
 SDL_GPUTransferBuffer* _transferBuffer;
+SDL_GPUShader* _vertexShader;
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
 {
@@ -73,6 +74,25 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
     SDL_EndGPUCopyPass(copyPass);
     SDL_SubmitGPUCommandBuffer(commandBuffer);
 
+    size_t vertexCodeSize;
+    void* vertexCode = SDL_LoadFile("shaders/vertex.spv", &vertexCodeSize);
+
+    SDL_GPUShaderCreateInfo vertexShaderInfo = {
+        .code_size = vertexCodeSize,
+        .code = (Uint8*)vertexCode,
+        .entrypoint = "main",
+        .format = SDL_GPU_SHADERFORMAT_SPIRV,
+        .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+        .num_samplers = 0,
+        .num_storage_textures = 0,
+        .num_storage_buffers = 0,
+        .num_uniform_buffers = 0,
+    };
+
+    _vertexShader = SDL_CreateGPUShader(_graphics, &vertexShaderInfo);
+
+    SDL_free(vertexCode);
+
     return SDL_APP_CONTINUE;
 }
 
@@ -114,6 +134,7 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result)
 {
     SDL_ReleaseGPUBuffer(_graphics, _vertexBuffer);
     SDL_ReleaseGPUTransferBuffer(_graphics, _transferBuffer);
+    SDL_ReleaseGPUShader(_graphics, _vertexShader);
 
     SDL_DestroyWindow(_window);
     SDL_DestroyGPUDevice(_graphics);
