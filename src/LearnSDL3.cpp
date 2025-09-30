@@ -27,6 +27,7 @@ SDL_GPUDevice* _graphics;
 SDL_GPUBuffer* _vertexBuffer;
 SDL_GPUTransferBuffer* _transferBuffer;
 SDL_GPUShader* _vertexShader;
+SDL_GPUShader* _fragmentShader;
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
 {
@@ -93,6 +94,25 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
 
     SDL_free(vertexCode);
 
+    size_t fragmentCodeSize;
+    void* fragmentCode = SDL_LoadFile("shaders/fragment.spv", &fragmentCodeSize);
+
+    SDL_GPUShaderCreateInfo fragmentShaderInfo = {
+        .code_size = fragmentCodeSize,
+        .code = (Uint8*)fragmentCode,
+        .entrypoint = "main",
+        .format = SDL_GPU_SHADERFORMAT_SPIRV,
+        .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+        .num_samplers = 0,
+        .num_storage_textures = 0,
+        .num_storage_buffers = 0,
+        .num_uniform_buffers = 0,
+    };
+
+    _fragmentShader = SDL_CreateGPUShader(_graphics, &fragmentShaderInfo);
+
+    SDL_free(fragmentCode);
+
     return SDL_APP_CONTINUE;
 }
 
@@ -134,7 +154,9 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result)
 {
     SDL_ReleaseGPUBuffer(_graphics, _vertexBuffer);
     SDL_ReleaseGPUTransferBuffer(_graphics, _transferBuffer);
+
     SDL_ReleaseGPUShader(_graphics, _vertexShader);
+    SDL_ReleaseGPUShader(_graphics, _fragmentShader);
 
     SDL_DestroyWindow(_window);
     SDL_DestroyGPUDevice(_graphics);
