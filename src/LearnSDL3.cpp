@@ -22,6 +22,13 @@ static Vertex _vertices[]
     { 0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f },
 };
 
+struct UniformBuffer
+{
+    float time;
+};
+
+static UniformBuffer _timeUniform{};
+
 SDL_Window* _window;
 SDL_GPUDevice* _graphics;
 SDL_GPUBuffer* _vertexBuffer;
@@ -105,7 +112,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
         .num_samplers = 0,
         .num_storage_textures = 0,
         .num_storage_buffers = 0,
-        .num_uniform_buffers = 0,
+        .num_uniform_buffers = 1,
     };
 
     SDL_GPUShader* fragmentShader = SDL_CreateGPUShader(_graphics, &fragmentShaderInfo);
@@ -195,6 +202,9 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     bufferBindings[0].offset = 0;
 
     SDL_BindGPUVertexBuffers(renderPass, 0, bufferBindings, 1);
+
+    _timeUniform.time = SDL_GetTicksNS() / 1e9f;
+    SDL_PushGPUFragmentUniformData(commandBuffer, 0, &_timeUniform, sizeof(UniformBuffer));
 
     SDL_DrawGPUPrimitives(renderPass, 3, 1, 0, 0);
 
