@@ -10,7 +10,8 @@
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl.exe",
                 "CMAKE_CXX_COMPILER": "cl.exe",
-                "SDL_EXAMPLES": false
+                "SDL_EXAMPLES": false,
+                "SDL_MAIN_USE_CALLBACKS": false
             },
             "condition": {
                 "type": "equals",
