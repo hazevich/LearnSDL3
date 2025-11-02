@@ -60,7 +60,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
     // data[i] = vertices[i]
     SDL_memcpy(transferData, _vertices, sizeof(_vertices));
 
-    SDL_UnmapGPUTransferBuffer(_graphics, _transferBuffer);
 
     SDL_GPUCommandBuffer* commandBuffer = SDL_AcquireGPUCommandBuffer(_graphics);
     SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(commandBuffer);
@@ -154,11 +153,11 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
         .format = SDL_GetGPUSwapchainTextureFormat(_graphics, _window),
         .blend_state = {
             .src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-            .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
+            .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
             .color_blend_op = SDL_GPU_BLENDOP_ADD,
 
             .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-            .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
+            .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
             .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
 
             .enable_blend = true,
@@ -173,6 +172,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
 
     SDL_ReleaseGPUShader(_graphics, vertexShader);
     SDL_ReleaseGPUShader(_graphics, fragmentShader);
+    SDL_UnmapGPUTransferBuffer(_graphics, _transferBuffer);
 
     return SDL_APP_CONTINUE;
 }
