@@ -11,6 +11,7 @@ endif()
 
 set(1_getting_started
 	1.1_creating_a_window
+	2.1_hello_window
 )
 
 set(SDL3_DEBUG_BUILD_PATH "${CMAKE_BINARY_DIR}/bin/Debug/SDL3")
