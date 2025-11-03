@@ -14,6 +14,7 @@ set(1_getting_started
 	2.1_hello_window
 	3.1_hello_triangle
 	3.2_hello_triangle_quad
+	3.3_hello_triangle_excercise_1
 )
 
 set(SDL3_DEBUG_BUILD_PATH "${CMAKE_BINARY_DIR}/bin/Debug/SDL3")

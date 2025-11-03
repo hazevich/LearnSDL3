@@ -2,9 +2,13 @@
 #include "SDL3/SDL.h"
 
 float _vertices[] = {
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f,
+    -1.0f, -0.5f, 0.0f,
+     0.0f, -0.5f, 0.0f,
+    -0.5f,  0.5f, 0.0f,
+     
+    -0.0f, -0.5f, 0.0f,
+     1.0f, -0.5f, 0.0f,
+     0.5f,  0.5f, 0.0f,
 };
 
 bool _shouldQuit;
@@ -246,7 +250,7 @@ int main()
             SDL_BindGPUGraphicsPipeline(renderPass, pipeline);
             SDL_GPUBufferBinding bufferBinding = { .buffer = vertexBuffer, .offset = 0 };
             SDL_BindGPUVertexBuffers(renderPass, 0, &bufferBinding, 1);
-            SDL_DrawGPUPrimitives(renderPass, 3, 1, 0, 0);
+            SDL_DrawGPUPrimitives(renderPass, 6, 1, 0, 0);
 
             SDL_EndGPURenderPass(renderPass);
         }
