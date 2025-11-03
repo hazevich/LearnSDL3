@@ -15,6 +15,8 @@ set(1_getting_started
 	3.1_hello_triangle
 	3.2_hello_triangle_quad
 	3.3_hello_triangle_excercise_1
+	3.4_hello_triangle_excercise_2
+	3.5_hello_triangle_excercise_3
 )
 
 set(SDL3_DEBUG_BUILD_PATH "${CMAKE_BINARY_DIR}/bin/Debug/SDL3")
@@ -49,6 +51,7 @@ foreach (SECTION ${1_getting_started})
 
 	set(VERTEX_SHADER_PATH "${SHADERS_PATH}/vertex_shader.glsl")
 	set(FRAGMENT_SHADER_PATH "${SHADERS_PATH}/fragment_shader.glsl")
+	set(FRAGMENT_SHADER2_PATH "${SHADERS_PATH}/fragment_shader2.glsl")
 	set(SHADERS_OUTPUT_DIR "${DEBUG_PATH}/shaders")
 
 	if (EXISTS ${SHADERS_PATH})
@@ -66,6 +69,12 @@ foreach (SECTION ${1_getting_started})
 	if(EXISTS ${FRAGMENT_SHADER_PATH})
 		add_custom_command(TARGET ${SECTION} POST_BUILD
 			COMMAND glslc -fshader-stage=fragment ${FRAGMENT_SHADER_PATH} -o "${SHADERS_OUTPUT_DIR}/fragment_shader.spv"
+		)
+	endif()
+
+	if(EXISTS ${FRAGMENT_SHADER2_PATH})
+		add_custom_command(TARGET ${SECTION} POST_BUILD
+			COMMAND glslc -fshader-stage=fragment ${FRAGMENT_SHADER2_PATH} -o "${SHADERS_OUTPUT_DIR}/fragment_shader2.spv"
 		)
 	endif()
 
