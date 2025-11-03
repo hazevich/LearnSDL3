@@ -12,6 +12,7 @@ endif()
 set(1_getting_started
 	1.1_creating_a_window
 	2.1_hello_window
+	3.1_hello_triangle
 )
 
 set(SDL3_DEBUG_BUILD_PATH "${CMAKE_BINARY_DIR}/bin/Debug/SDL3")
@@ -39,6 +40,32 @@ foreach (SECTION ${1_getting_started})
 	add_custom_command(TARGET ${SECTION} POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy_directory ${SDL3_DEBUG_BUILD_PATH} ${DEBUG_PATH}
 	)
+
+	SET(BASE_PATH "")
+
+	set(SHADERS_PATH "${CMAKE_SOURCE_DIR}/src/1_getting_started/${SECTION}/shaders")
+
+	set(VERTEX_SHADER_PATH "${SHADERS_PATH}/vertex_shader.glsl")
+	set(FRAGMENT_SHADER_PATH "${SHADERS_PATH}/fragment_shader.glsl")
+	set(SHADERS_OUTPUT_DIR "${DEBUG_PATH}/shaders")
+
+	if (EXISTS ${SHADERS_PATH})
+		add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E make_directory ${SHADERS_OUTPUT_DIR}
+		)
+	endif()
+
+	if (EXISTS ${VERTEX_SHADER_PATH})
+		add_custom_command(TARGET ${SECTION} POST_BUILD
+			COMMAND glslc -fshader-stage=vertex ${VERTEX_SHADER_PATH} -o "${SHADERS_OUTPUT_DIR}/vertex_shader.spv"
+		)
+	endif()
+
+	if(EXISTS ${FRAGMENT_SHADER_PATH})
+		add_custom_command(TARGET ${SECTION} POST_BUILD
+			COMMAND glslc -fshader-stage=fragment ${FRAGMENT_SHADER_PATH} -o "${SHADERS_OUTPUT_DIR}/fragment_shader.spv"
+		)
+	endif()
 
 	set_property(TARGET ${SECTION} PROPERTY CXX_STANDARD 23)
 endforeach()
