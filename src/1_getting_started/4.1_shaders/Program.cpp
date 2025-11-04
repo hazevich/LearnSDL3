@@ -1,14 +1,12 @@
 #include <print>
+#include <algorithm>
 #include "SDL3/SDL.h"
+#include "Common/misc.h"
 
 float _vertices[] = {
-    -1.0f, -0.5f, 0.0f,
-     0.0f, -0.5f, 0.0f,
-    -0.5f,  0.5f, 0.0f,
-     
-    -0.0f, -0.5f, 0.0f,
-     1.0f, -0.5f, 0.0f,
-     0.5f,  0.5f, 0.0f,
+    -0.5f, -0.5f, 0.0f,
+     0.5f, -0.5f, 0.0f,
+     0.0f,  0.5f, 0.0f,
 };
 
 bool _shouldQuit;
@@ -94,7 +92,7 @@ int main()
         .num_samplers = 0,
         .num_storage_textures = 0,
         .num_storage_buffers = 0,
-        .num_uniform_buffers = 0
+        .num_uniform_buffers = 1
     };
 
     SDL_GPUShader* fragmentShader = SDL_CreateGPUShader(graphicsDevice, &fragmentShaderInfo);
@@ -248,11 +246,16 @@ int main()
             SDL_GPURenderPass* renderPass = SDL_BeginGPURenderPass(commandBuffer, &colorTargetInfo, 1, NULL);
 
             SDL_BindGPUGraphicsPipeline(renderPass, pipeline);
+
+            float timeValue = SDL_GetTimeSeconds();
+            float greenValue = sin(timeValue) / 2.0 + 0.5f;
+            float color[] = { 0.0f, greenValue, 0.0f, 1.0f };
+
+            SDL_PushGPUFragmentUniformData(commandBuffer, 0, color, sizeof(color));
+
             SDL_GPUBufferBinding bufferBinding = { .buffer = vertexBuffer, .offset = 0 };
             SDL_BindGPUVertexBuffers(renderPass, 0, &bufferBinding, 1);
-
             SDL_DrawGPUPrimitives(renderPass, 3, 1, 0, 0);
-            SDL_DrawGPUPrimitives(renderPass, 3, 1, 3, 0);
 
             SDL_EndGPURenderPass(renderPass);
         }

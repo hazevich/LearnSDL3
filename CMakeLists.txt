@@ -18,6 +18,7 @@ set(1_getting_started
 	3.3_hello_triangle_excercise_1.2
 	3.4_hello_triangle_excercise_2
 	3.5_hello_triangle_excercise_3
+	4.1_shaders
 )
 
 set(SDL3_DEBUG_BUILD_PATH "${CMAKE_BINARY_DIR}/bin/Debug/SDL3")
@@ -28,6 +29,7 @@ set_target_properties(SDL3-shared PROPERTIES
 
 foreach (SECTION ${1_getting_started})
 	file(GLOB SOURCE_FILES
+		"src/Common/*.h"
 		"src/1_getting_started/${SECTION}/*.cpp"
 	)
 
@@ -82,4 +84,4 @@ foreach (SECTION ${1_getting_started})
 	set_property(TARGET ${SECTION} PROPERTY CXX_STANDARD 23)
 endforeach()
 
-
+include_directories("${CMAKE_SOURCE_DIR}/src")
