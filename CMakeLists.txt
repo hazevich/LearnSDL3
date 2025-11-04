@@ -15,6 +15,7 @@ set(1_getting_started
 	3.1_hello_triangle
 	3.2_hello_triangle_quad
 	3.3_hello_triangle_excercise_1
+	3.3_hello_triangle_excercise_1.2
 	3.4_hello_triangle_excercise_2
 	3.5_hello_triangle_excercise_3
 )
