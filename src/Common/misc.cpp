@@ -167,23 +167,24 @@ bool GPUUploader::Upload()
     }
 
     void* transferData = SDL_MapGPUTransferBuffer(_graphicsDevice, transferBuffer, false);
-    uint32_t transferDataOffset = 0;
+    void* currentTransferData = transferData;
 
     for (VertexData& vertexData : Vertices)
     {
-        SDL_memcpy((float*) transferData + transferDataOffset, vertexData.Vertices, vertexData.Size);
-        transferDataOffset += vertexData.Size / sizeof(float);
+        SDL_memcpy(currentTransferData, vertexData.Vertices, vertexData.Size);
+        currentTransferData = (float*) currentTransferData + vertexData.Size / sizeof(float);
     }
 
     for (IndexData& indexData : Indecies)
     {
-        SDL_memcpy((uint32_t*) transferData + transferDataOffset, indexData.Indecies, indexData.Size);
-        transferDataOffset += indexData.Size / sizeof(uint32_t);
+        SDL_memcpy(currentTransferData, indexData.Indecies, indexData.Size);
+        currentTransferData = (uint32_t*) currentTransferData + indexData.Size / sizeof(uint32_t);
     }
 
     for (TextureData& textureData : Textures)
     {
-        SDL_memcpy((uint32_t*)transferData + transferDataOffset, textureData.Pixels, textureData.Width * textureData.Height * 4);
+        SDL_memcpy(currentTransferData, textureData.Pixels, textureData.Width * textureData.Height * 4);
+        currentTransferData = (float*) currentTransferData + textureData.Width * textureData.Height;
     }
 
     SDL_UnmapGPUTransferBuffer(_graphicsDevice, transferBuffer);
@@ -249,6 +250,8 @@ bool GPUUploader::Upload()
         };
 
         SDL_UploadToGPUTexture(copyPass, &transferLocation, &textureRegion, false);
+
+        transferDataOffsetBytes += textureData.Width * textureData.Height * 4;
     }
 
     SDL_EndGPUCopyPass(copyPass);
