@@ -20,6 +20,7 @@ set(1_getting_started
 	3.5_hello_triangle_excercise_3
 	4.1_shaders
 	4.2_shaders_more_attributes
+	4.3_shaders_abstractions
 )
 
 set(SDL3_DEBUG_BUILD_PATH "${CMAKE_BINARY_DIR}/bin/Debug/SDL3")
@@ -28,9 +29,12 @@ add_subdirectory(vendor/SDL)
 set_target_properties(SDL3-shared PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${SDL3_DEBUG_BUILD_PATH})
 
+add_library(Common src/Common/misc.cpp)
+target_link_libraries(Common PRIVATE SDL3::SDL3)
+set_property(TARGET Common PROPERTY CXX_STANDARD 23)
+
 foreach (SECTION ${1_getting_started})
 	file(GLOB SOURCE_FILES
-		"src/Common/*.h"
 		"src/1_getting_started/${SECTION}/*.cpp"
 	)
 
@@ -38,6 +42,7 @@ foreach (SECTION ${1_getting_started})
 
 	add_executable(${SECTION} ${SOURCE_FILES})
 	target_link_libraries(${SECTION} PRIVATE SDL3::SDL3)
+	target_link_libraries(${SECTION} PRIVATE Common)
 
 	set(DEBUG_PATH ${CMAKE_BINARY_DIR}/1_getting_started/${SECTION})
 
