@@ -23,6 +23,7 @@ set(1_getting_started
 	4.3_shaders_abstractions
 	4.4_shaders_excercise_1
 	4.5_shaders_excercise_2
+	4.6_shaders_excercise_3
 )
 
 set(SDL3_DEBUG_BUILD_PATH "${CMAKE_BINARY_DIR}/bin/Debug/SDL3")
