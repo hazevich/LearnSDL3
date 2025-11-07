@@ -61,7 +61,7 @@ struct PipelineCreateInfo
 class Pipeline
 {
 public:
-    static std::optional<Pipeline> Create(SDL_GPUDevice* graphicsDevice, SDL_Window* window, PipelineCreateInfo createinfo);
+    static std::optional<Pipeline> Create(SDL_GPUDevice* graphicsDevice, SDL_Window* window, const PipelineCreateInfo& createinfo);
 
     void Release();
 
@@ -81,6 +81,7 @@ public:
 
     void AddVertexData(float vertices[], uint32_t size, SDL_GPUBuffer* vertexBuffer, uint32_t bufferOffset = 0);
     void AddIndexData(uint32_t indecies[], uint32_t size, SDL_GPUBuffer* indexBuffer, uint32_t bufferOffset = 0);
+    void AddTextureData(void* pixels, uint32_t width, uint32_t height, SDL_GPUTexture* texture);
     bool Upload();
 
 private:
@@ -100,8 +101,30 @@ private:
         uint32_t BufferOffset;
     };
 
+    struct TextureData
+    {
+        void* Pixels;
+        uint32_t Width;
+        uint32_t Height;
+        SDL_GPUTexture* Texture;
+    };
+
     std::vector<VertexData> Vertices;
     std::vector<IndexData> Indecies;
+    std::vector<TextureData> Textures;
 
     SDL_GPUDevice* _graphicsDevice;
 };
+
+struct Image
+{
+    void* Data;
+    uint32_t Width;
+    uint32_t Height;
+    uint32_t Channels;
+
+    Image(void* data, uint32_t width, uint32_t height, uint32_t channels);
+    ~Image();
+};
+
+Image* LoadImage(const std::string& filePath);

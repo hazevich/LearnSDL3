@@ -1,5 +1,6 @@
 #include "misc.h"
 #include "SDL3/SDL.h"
+#include "stb_image.h"
 
 std::optional<Shader> Shader::FromSPV(SDL_GPUDevice* graphicsDevice, const std::string& shaderPath, const ShaderCreateInfo& shaderCreateInfo)
 {
@@ -68,9 +69,9 @@ SDL_GPUGraphicsPipeline* Pipeline::GetHandle() const
     return PipelineHandle;
 }
 
-std::optional<Pipeline> Pipeline::Create(SDL_GPUDevice* graphicsDevice, SDL_Window* window, PipelineCreateInfo createInfo)
+std::optional<Pipeline> Pipeline::Create(SDL_GPUDevice* graphicsDevice, SDL_Window* window, const PipelineCreateInfo& createInfo)
 {
-    VertexBufferDescription& vertexBufferDescription = createInfo.VertexBufferDescription;
+    const VertexBufferDescription& vertexBufferDescription = createInfo.VertexBufferDescription;
 
     SDL_GPUVertexBufferDescription vertexBufferDescriptions[] = {
         {
@@ -87,7 +88,7 @@ std::optional<Pipeline> Pipeline::Create(SDL_GPUDevice* graphicsDevice, SDL_Wind
     };
         
 
-    std::vector<SDL_GPUVertexAttribute>& vertexAttributes = createInfo.VertexAttributes;
+    const std::vector<SDL_GPUVertexAttribute>& vertexAttributes = createInfo.VertexAttributes;
 
     SDL_GPUGraphicsPipelineCreateInfo pipelineInfo = {
         .vertex_shader = createInfo.VertexShader->GetHandle(),
@@ -132,6 +133,11 @@ void GPUUploader::AddIndexData(uint32_t indecies[], uint32_t size, SDL_GPUBuffer
     Indecies.push_back(IndexData{ .Indecies = indecies, .Size = size, .IndexBuffer = indexBuffer, .BufferOffset = bufferOffset });
 }
 
+void GPUUploader::AddTextureData(void* pixels, uint32_t width, uint32_t height, SDL_GPUTexture* texture)
+{
+    Textures.push_back(TextureData{ .Pixels = pixels, .Width = width, .Height = height, .Texture = texture });
+}
+
 bool GPUUploader::Upload()
 {
     uint32_t totalSize = 0;
@@ -144,6 +150,11 @@ bool GPUUploader::Upload()
     for (IndexData& indexData : Indecies)
     {
         totalSize += indexData.Size;
+    }
+
+    for (TextureData& textureData : Textures)
+    {
+        totalSize += textureData.Width * textureData.Height * 4;
     }
 
     SDL_GPUTransferBufferCreateInfo createInfo = { .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD, .size = totalSize };
@@ -161,13 +172,18 @@ bool GPUUploader::Upload()
     for (VertexData& vertexData : Vertices)
     {
         SDL_memcpy((float*) transferData + transferDataOffset, vertexData.Vertices, vertexData.Size);
-        transferDataOffset += vertexData.Size;
+        transferDataOffset += vertexData.Size / sizeof(float);
     }
 
     for (IndexData& indexData : Indecies)
     {
         SDL_memcpy((uint32_t*) transferData + transferDataOffset, indexData.Indecies, indexData.Size);
-        transferDataOffset += indexData.Size;
+        transferDataOffset += indexData.Size / sizeof(uint32_t);
+    }
+
+    for (TextureData& textureData : Textures)
+    {
+        SDL_memcpy((uint32_t*)transferData + transferDataOffset, textureData.Pixels, textureData.Width * textureData.Height * 4);
     }
 
     SDL_UnmapGPUTransferBuffer(_graphicsDevice, transferBuffer);
@@ -180,13 +196,13 @@ bool GPUUploader::Upload()
     }
 
     SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(commandBuffer);
-    transferDataOffset = 0;
+    uint32_t transferDataOffsetBytes = 0;
 
     for (VertexData& vertexData : Vertices)
     {
         SDL_GPUTransferBufferLocation transferBufferLocation = {
             .transfer_buffer = transferBuffer,
-            .offset = transferDataOffset,
+            .offset = transferDataOffsetBytes,
         };
 
         SDL_GPUBufferRegion bufferRegion = {
@@ -197,14 +213,14 @@ bool GPUUploader::Upload()
 
         SDL_UploadToGPUBuffer(copyPass, &transferBufferLocation, &bufferRegion, false);
 
-        transferDataOffset += vertexData.Size;
+        transferDataOffsetBytes += vertexData.Size;
     }
 
     for (IndexData& indexData : Indecies)
     {
         SDL_GPUTransferBufferLocation transferBufferLocation = {
             .transfer_buffer = transferBuffer,
-            .offset = transferDataOffset,
+            .offset = transferDataOffsetBytes,
         };
 
         SDL_GPUBufferRegion bufferRegion = {
@@ -215,7 +231,24 @@ bool GPUUploader::Upload()
 
         SDL_UploadToGPUBuffer(copyPass, &transferBufferLocation, &bufferRegion, false);
 
-        transferDataOffset += indexData.Size;
+        transferDataOffsetBytes += indexData.Size;
+    }
+
+    for (TextureData& textureData : Textures)
+    {
+        SDL_GPUTextureTransferInfo transferLocation = {
+            .transfer_buffer = transferBuffer,
+            .offset = transferDataOffsetBytes,
+        };
+        
+        SDL_GPUTextureRegion textureRegion = {
+            .texture = textureData.Texture,
+            .w = textureData.Width,
+            .h = textureData.Height,
+            .d = 1
+        };
+
+        SDL_UploadToGPUTexture(copyPass, &transferLocation, &textureRegion, false);
     }
 
     SDL_EndGPUCopyPass(copyPass);
@@ -226,4 +259,25 @@ bool GPUUploader::Upload()
     Indecies.clear();
 
     return true;
+}
+
+Image::Image(void* data, uint32_t width, uint32_t height, uint32_t channels)
+    : Data(data), Width(width), Height(height), Channels(channels)
+{
+
+}
+
+Image::~Image()
+{
+    stbi_image_free(Data);
+}
+
+Image* LoadImage(const std::string& filePath)
+{
+    stbi_set_flip_vertically_on_load(true);
+
+    int32_t width, height, channels;
+    void* data = stbi_load(filePath.c_str(), &width, &height, &channels, 0);
+
+    return new Image(data, width, height, channels);
 }

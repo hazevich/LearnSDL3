@@ -24,6 +24,7 @@ set(1_getting_started
 	4.4_shaders_excercise_1
 	4.5_shaders_excercise_2
 	4.6_shaders_excercise_3
+	5.1_textures
 )
 
 set(SDL3_DEBUG_BUILD_PATH "${CMAKE_BINARY_DIR}/bin/Debug/SDL3")
@@ -32,9 +33,10 @@ add_subdirectory(vendor/SDL)
 set_target_properties(SDL3-shared PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${SDL3_DEBUG_BUILD_PATH})
 
-add_library(Common src/Common/misc.cpp)
+add_library(Common src/Common/misc.cpp src/Common/stb_image.cpp)
 target_link_libraries(Common PRIVATE SDL3::SDL3)
 set_property(TARGET Common PROPERTY CXX_STANDARD 23)
+
 
 foreach (SECTION ${1_getting_started})
 	file(GLOB SOURCE_FILES
@@ -90,7 +92,16 @@ foreach (SECTION ${1_getting_started})
 		)
 	endif()
 
+	set(ASSETS_PATH "${CMAKE_SOURCE_DIR}/src/1_getting_started/${SECTION}/assets")
+
+	if(EXISTS ${ASSETS_PATH})
+		add_custom_command(TARGET ${SECTION} POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_directory ${ASSETS_PATH} $<TARGET_FILE_DIR:${SECTION}>/assets
+		)
+	endif()
+
 	set_property(TARGET ${SECTION} PROPERTY CXX_STANDARD 23)
 endforeach()
 
 include_directories("${CMAKE_SOURCE_DIR}/src")
+include_directories("${CMAKE_SOURCE_DIR}/vendor/stb")

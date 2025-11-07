@@ -199,9 +199,9 @@ int main()
         return -1;
     }
 
-    float* transferData = (float*) SDL_MapGPUTransferBuffer(graphicsDevice, transferBuffer, false);
+    void* transferData = SDL_MapGPUTransferBuffer(graphicsDevice, transferBuffer, false);
     SDL_memcpy(transferData, _vertices, sizeof(_vertices));
-    SDL_memcpy(transferData + std::size(_vertices), _indices, sizeof(_indices));
+    SDL_memcpy((uint32_t*) transferData + std::size(_vertices), _indices, sizeof(_indices));
 
     SDL_UnmapGPUTransferBuffer(graphicsDevice, transferBuffer);
 
