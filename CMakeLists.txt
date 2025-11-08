@@ -26,13 +26,15 @@ set(1_getting_started
 	4.6_shaders_excercise_3
 	5.1_textures
 	5.2_two_textures
+	5.3_textures_excercise_1
 )
 
 set(SDL3_DEBUG_BUILD_PATH "${CMAKE_BINARY_DIR}/bin/Debug/SDL3")
 
 add_subdirectory(vendor/SDL)
 set_target_properties(SDL3-shared PROPERTIES
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${SDL3_DEBUG_BUILD_PATH})
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${SDL3_DEBUG_BUILD_PATH}
+	SDL_EXAMPLES false)
 
 add_library(Common src/Common/misc.cpp src/Common/stb_image.cpp)
 target_link_libraries(Common PRIVATE SDL3::SDL3)
