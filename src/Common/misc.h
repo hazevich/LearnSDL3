@@ -128,3 +128,13 @@ struct Image
 };
 
 Image* LoadImage(const std::string& filePath);
+
+struct Time
+{
+    uint64_t PreviousTicksNS = 0;
+    uint64_t CurrentTicksNS = 0;
+    float DeltaTime = 0;
+};
+
+
+void TickTime(Time& time);
