@@ -28,6 +28,7 @@ set(1_getting_started
 	5.2_two_textures
 	5.3_textures_excercise_1
 	5.4_textures_excercise_2
+	5.5_textures_excercise_3
 )
 
 set(SDL3_DEBUG_BUILD_PATH "${CMAKE_BINARY_DIR}/bin/Debug/SDL3")
