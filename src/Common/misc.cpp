@@ -290,4 +290,5 @@ void TickTime(Time& time)
     time.PreviousTicksNS = time.CurrentTicksNS;
     time.CurrentTicksNS = SDL_GetTicksNS();
     time.DeltaTime = NanosecondsToSeconds(time.CurrentTicksNS - time.PreviousTicksNS);
+    time.TotalTime = NanosecondsToSeconds(time.CurrentTicksNS);
 }

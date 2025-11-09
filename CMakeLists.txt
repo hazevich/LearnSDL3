@@ -31,6 +31,9 @@ set(1_getting_started
 	5.5_textures_excercise_3
 	5.6_textures_excercise_4
 	6.1_transformations
+	6.2_transformations_animated
+	6.3_transformations_excercise_1
+	6.4_transformations_excercise_2
 )
 
 set(SDL3_DEBUG_BUILD_PATH "${CMAKE_BINARY_DIR}/bin/Debug/SDL3")
