@@ -56,6 +56,7 @@ struct PipelineCreateInfo
     Shader* FragmentShader;
     VertexBufferDescription VertexBufferDescription;
     std::vector<SDL_GPUVertexAttribute> VertexAttributes;
+    std::optional<SDL_GPUTextureFormat> DepthStencilFormat;
 };
 
 class Pipeline

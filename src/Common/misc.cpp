@@ -87,7 +87,6 @@ std::optional<Pipeline> Pipeline::Create(SDL_GPUDevice* graphicsDevice, SDL_Wind
         .format = SDL_GetGPUSwapchainTextureFormat(graphicsDevice, window)
     };
         
-
     const std::vector<SDL_GPUVertexAttribute>& vertexAttributes = createInfo.VertexAttributes;
 
     SDL_GPUGraphicsPipelineCreateInfo pipelineInfo = {
@@ -103,8 +102,20 @@ std::optional<Pipeline> Pipeline::Create(SDL_GPUDevice* graphicsDevice, SDL_Wind
         .target_info = {
             .color_target_descriptions = colorTargetDescriptions,
             .num_color_targets = 1,
-        }
+        },
     };
+
+    if (createInfo.DepthStencilFormat.has_value())
+    {
+        pipelineInfo.depth_stencil_state = {
+            .compare_op = SDL_GPU_COMPAREOP_LESS,
+            .enable_depth_test = true,
+            .enable_depth_write = true,
+        };
+
+        pipelineInfo.target_info.has_depth_stencil_target = true;
+        pipelineInfo.target_info.depth_stencil_format = createInfo.DepthStencilFormat.value();
+    }
 
     SDL_GPUGraphicsPipeline* pipelineHandle = SDL_CreateGPUGraphicsPipeline(graphicsDevice, &pipelineInfo);
 
