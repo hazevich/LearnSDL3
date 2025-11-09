@@ -4,6 +4,3 @@
 [submodule "vendor/stb"]
 	path = vendor/stb
 	url = https://github.com/hazevich/stb
-[submodule "vendors/glm"]
-	path = vendors/glm
-	url = https://github.com/hazevich/glm
