@@ -30,11 +30,14 @@ set(1_getting_started
 	5.4_textures_excercise_2
 	5.5_textures_excercise_3
 	5.6_textures_excercise_4
+	6.1_transformations
 )
 
 set(SDL3_DEBUG_BUILD_PATH "${CMAKE_BINARY_DIR}/bin/Debug/SDL3")
 
 add_subdirectory(vendor/SDL)
+add_subdirectory(vendor/glm)
+
 set_target_properties(SDL3-shared PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${SDL3_DEBUG_BUILD_PATH}
 	SDL_EXAMPLES false)
@@ -54,6 +57,7 @@ foreach (SECTION ${1_getting_started})
 	add_executable(${SECTION} ${SOURCE_FILES})
 	target_link_libraries(${SECTION} PRIVATE SDL3::SDL3)
 	target_link_libraries(${SECTION} PRIVATE Common)
+	target_link_libraries(${SECTION} PRIVATE glm)
 
 	set(DEBUG_PATH ${CMAKE_BINARY_DIR}/1_getting_started/${SECTION})
 
