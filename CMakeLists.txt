@@ -36,6 +36,7 @@ set(1_getting_started
 	6.4_transformations_excercise_2
 	7.1_coordinate_systems
 	7.2_coordinate_systems_more_3d
+	7.3_coordinate_systems_more_cubes
 )
 
 set(SDL3_DEBUG_BUILD_PATH "${CMAKE_BINARY_DIR}/bin/Debug/SDL3")
