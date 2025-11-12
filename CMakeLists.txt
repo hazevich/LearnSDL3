@@ -41,6 +41,7 @@ set(1_getting_started
 	7.5_coordinate_systems_excercise_2
 	7.6_coordinate_systems_excercise_3
 	8.1_camera
+	8.1_camera_walk_around
 )
 
 set(SDL3_DEBUG_BUILD_PATH "${CMAKE_BINARY_DIR}/bin/Debug/SDL3")
