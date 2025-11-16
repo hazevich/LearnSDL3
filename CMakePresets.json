@@ -12,7 +12,8 @@
                 "CMAKE_CXX_COMPILER": "cl.exe",
                 "SDL_EXAMPLES": false,
                 "SDL_EXAMPLES_LINK_SHARED": false,
-                "SDL_MAIN_USE_CALLBACKS": false
+                "SDL_MAIN_USE_CALLBACKS": false,
+                "CMAKE_POLICY_VERSION_MINIMUM": "3.5"
             },
             "condition": {
                 "type": "equals",

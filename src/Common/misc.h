@@ -4,6 +4,7 @@
 #include <string>
 #include <optional>
 #include <vector>
+#include <memory>
 
 #include <SDL3/SDL.h>
 
@@ -140,3 +141,25 @@ struct Time
 
 
 void TickTime(Time& time);
+
+struct FontAtlasNode
+{
+    uint32_t X;
+    uint32_t Y;
+    uint32_t Width;
+    uint32_t Height;
+
+    bool IsFull = false;
+    int32_t Left = -1;
+    int32_t Right= -1;
+};
+
+struct FontAtlas
+{
+    std::vector<FontAtlasNode> Nodes;
+    int32_t RootNode;
+};
+
+FontAtlas CreateFontAtlas(uint32_t width, uint32_t height);
+std::optional<FontAtlasNode> PackTexture(FontAtlas& fontAtlas, uint32_t width, uint32_t height);
+

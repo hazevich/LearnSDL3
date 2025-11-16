@@ -42,6 +42,7 @@ set(1_getting_started
 	7.6_coordinate_systems_excercise_3
 	8.1_camera
 	8.1_camera_walk_around
+	9.1_text_rendering
 )
 
 set(SDL3_DEBUG_BUILD_PATH "${CMAKE_BINARY_DIR}/bin/Debug/SDL3")
@@ -53,7 +54,7 @@ set_target_properties(SDL3-shared PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${SDL3_DEBUG_BUILD_PATH}
 	SDL_EXAMPLES false)
 
-add_library(Common src/Common/misc.cpp src/Common/stb_image.cpp)
+add_library(Common src/Common/misc.cpp src/Common/stb_image.cpp src/Common/stb_truetype.cpp)
 target_link_libraries(Common PRIVATE SDL3::SDL3)
 set_property(TARGET Common PROPERTY CXX_STANDARD 23)
 

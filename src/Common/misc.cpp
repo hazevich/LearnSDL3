@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "misc.h"
 #include "SDL3/SDL.h"
 #include "stb_image.h"
@@ -84,7 +85,18 @@ std::optional<Pipeline> Pipeline::Create(SDL_GPUDevice* graphicsDevice, SDL_Wind
 
     SDL_GPUColorTargetDescription colorTargetDescriptions[1];
     colorTargetDescriptions[0] = {
-        .format = SDL_GetGPUSwapchainTextureFormat(graphicsDevice, window)
+        .format = SDL_GetGPUSwapchainTextureFormat(graphicsDevice, window),
+        .blend_state = {
+            .src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+            .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+            .color_blend_op = SDL_GPU_BLENDOP_ADD,
+
+            .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+            .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+            .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+
+            .enable_blend = true,
+        },
     };
         
     const std::vector<SDL_GPUVertexAttribute>& vertexAttributes = createInfo.VertexAttributes;
@@ -271,6 +283,7 @@ bool GPUUploader::Upload()
 
     Vertices.clear();
     Indecies.clear();
+    Textures.clear();
 
     return true;
 }
@@ -302,4 +315,100 @@ void TickTime(Time& time)
     time.CurrentTicksNS = SDL_GetTicksNS();
     time.DeltaTime = NanosecondsToSeconds(time.CurrentTicksNS - time.PreviousTicksNS);
     time.TotalTime = NanosecondsToSeconds(time.CurrentTicksNS);
+}
+
+FontAtlas CreateFontAtlas(uint32_t width, uint32_t height)
+{
+    FontAtlasNode rootNode{ .X = 0, .Y = 0, .Width = width, .Height = height };
+    FontAtlas fontAtlas{ .Nodes = {}, .RootNode = 0 };
+    fontAtlas.Nodes.emplace_back(rootNode);
+
+    return fontAtlas;
+}
+
+std::optional<FontAtlasNode> PackTexture(FontAtlas& fontAtlas, FontAtlasNode& node, uint32_t width, uint32_t height)
+{
+    if (node.IsFull)
+        return std::nullopt;
+
+    std::vector<FontAtlasNode>& nodes = fontAtlas.Nodes;
+
+    if (node.Left != -1 && node.Right != -1)
+    {
+        std::optional<FontAtlasNode> packedNode = PackTexture(fontAtlas, nodes[node.Left], width, height);
+
+        if (packedNode == std::nullopt)
+        {
+            packedNode = PackTexture(fontAtlas, nodes[node.Right], width, height);
+        }
+
+        return packedNode;
+    }
+    else
+    {
+        if (node.Width < width || node.Height < height)
+        {
+            return std::nullopt;
+        }
+
+        if (node.Width == width && node.Height == height)
+        {
+            node.IsFull = true;
+            return node;
+        }
+
+        int32_t leftNodeId = nodes.size();
+        int32_t rightNodeId = leftNodeId + 1;
+
+        uint32_t remainingWidth = node.Width - width;
+        uint32_t remainingHeight = node.Height - height;
+
+        FontAtlasNode leftNode{};
+        FontAtlasNode rightNode{};
+
+        if (remainingWidth > remainingHeight)
+        {
+            leftNode.X = node.X;
+            leftNode.Y = node.Y;
+            leftNode.Width = width;
+            leftNode.Height = node.Height;
+
+            rightNode.X = node.X + width;
+            rightNode.Y = node.Y;
+            rightNode.Width = remainingWidth == 0 ? width : remainingWidth;
+            rightNode.Height = node.Height;
+        }
+        else
+        {
+            leftNode.X = node.X;
+            leftNode.Y = node.Y;
+            leftNode.Width = node.Width;
+            leftNode.Height = height;
+
+            rightNode.X = node.X;
+            rightNode.Y = node.Y + height;
+            rightNode.Width = node.Width;
+            rightNode.Height = remainingHeight == 0 ? height : remainingHeight;
+        }
+
+        node.Left = leftNodeId;
+        node.Right = rightNodeId;
+
+        nodes.emplace_back(leftNode);
+        nodes.emplace_back(rightNode);
+
+        return PackTexture(fontAtlas, nodes[leftNodeId], width, height);
+    }
+}
+
+std::optional<FontAtlasNode> PackTexture(FontAtlas& fontAtlas, uint32_t width, uint32_t height)
+{
+    FontAtlasNode& rootNode = fontAtlas.Nodes[0];
+
+    if (width > rootNode.Width || height > rootNode.Height)
+    {
+        return std::nullopt;
+    }
+
+    return PackTexture(fontAtlas, rootNode, width + 1, height + 1);
 }
