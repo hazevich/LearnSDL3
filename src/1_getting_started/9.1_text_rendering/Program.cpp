@@ -62,6 +62,7 @@ struct Character
 };
 
 std::map<std::tuple<char, int32_t>, Character> _characters;
+std::map<std::tuple<char, char>, float> _kerningPairs;
 
 Character* GetCharacter(char character, int32_t fontSize);
 
@@ -257,10 +258,11 @@ int main()
     float y = 50.0f;
     float x = -50.0f;
 
+    const int32_t fontSize = 40;
 
     int32_t ascent, descent, lineGap;
     stbtt_GetFontVMetrics(&fontInfo, &ascent, &descent, &lineGap);
-    float scale = stbtt_ScaleForPixelHeight(&fontInfo, 20);
+    float scale = stbtt_ScaleForPixelHeight(&fontInfo, fontSize);
 
     int32_t charIndex = 0;
 
@@ -273,9 +275,27 @@ int main()
             continue;
         }
 
-        Character* character = GetCharacter(text[i], 20);
+        Character* character = GetCharacter(text[i], fontSize);
         if (character)
         {
+            float kerning = 0.0f;
+
+            if (i < text.size() - 1)
+            {
+                std::tuple<char, char> kerningKey = { text[i], text[i + 1] };
+                if (_kerningPairs.contains(kerningKey))
+                {
+                    kerning = _kerningPairs[kerningKey];
+                }
+                else 
+                {
+                    kerning = stbtt_GetCodepointKernAdvance(&fontInfo, text[i], text[i + 1]);
+                    _kerningPairs.insert(std::pair<std::tuple<char, char>, float>(kerningKey, kerning));
+                }
+            }
+
+            kerning *= scale;
+
             float minu = character->X / (float) AtlasSize;
             float minv = character->Y / (float) AtlasSize;
             float maxu = minu + (character->Width / (float) AtlasSize);
@@ -286,7 +306,7 @@ int main()
             float maxcx = mincx + character->Width;
             float maxcy = mincy + character->Height;
 
-            x += character->Advance;
+            x += character->Advance + kerning;
 
             vertices.push_back(mincx); vertices.push_back(maxcy); vertices.push_back(minu); vertices.push_back(minv);
             vertices.push_back(mincx); vertices.push_back(mincy); vertices.push_back(minu); vertices.push_back(maxv);
@@ -302,6 +322,11 @@ int main()
             charIndex++;
         }
     }
+
+    y = 50.0f;
+    x = -1050.0f;
+
+
 
     SDL_GPUBufferCreateInfo vertexBufferInfo = {
         .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
